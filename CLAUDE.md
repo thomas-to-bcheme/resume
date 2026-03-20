@@ -19,24 +19,26 @@ You are the **Lead Orchestrator**. Your goal is to coordinate changes across the
 
 ## 3. Project Overview
 
-Standalone resume tailoring microservice powered by Claude Code. Reads a golden dataset (`src/docs/resume.md`), tailors content to job descriptions using AI agents, and generates ATS-optimized single-page PDFs.
+Standalone resume tailoring microservice powered by Claude Code. Reads a golden dataset (`docs/resume.md`), tailors content to job descriptions using AI agents, and generates ATS-optimized single-page PDFs.
 
 ### Workflow
-1. User invokes `/resume-tailor <output_name>` with a job description (URL or pasted text)
-2. Claude Code reads the golden dataset and writing style rules
+1. User invokes `/resume-tailor <application_name>` with a job description (URL or pasted text)
+2. Claude Code reads the golden dataset and writing style rules from `docs/`
 3. Resume agent tailors content to the JD using XYZ bullet formula
 4. Validation script checks ATS compliance, banned words, character budget
 5. PDF generator produces a single-page resume
 
 ### Key Directories
+- `docs/` - Golden datasets and reference files (IMMUTABLE, READ-ONLY)
+- `markdown/` - Generated markdown output (one subfolder per application)
+- `pdf/` - Generated PDF output
+- `scripts/` - Python pipeline package (`resume_pdf.py` + `pipeline/` modules)
 - `.claude/skills/resume-tailor/` - Skill orchestrator (7-step workflow)
 - `.claude/agents/` - Resume tailoring sub-agent
-- `scripts/` - PDF generation and validation (`resume_pdf.py`)
-- `src/docs/resume.md` - Golden dataset (READ-ONLY, never modified)
 
 ### Tech Stack
 - **AI**: Claude Code with sub-agents
-- **PDF Generation**: Python 3.12+, fpdf2
+- **PDF Generation**: Python 3.12+, fpdf2 (modular pipeline in `scripts/pipeline/`)
 - **Containerization**: Docker (optional)
 
 ## 4. Commands
@@ -52,17 +54,17 @@ Standalone resume tailoring microservice powered by Claude Code. Reads a golden 
 python3 scripts/resume_pdf.py --validate-only
 
 # Validate a tailored resume
-python3 scripts/resume_pdf.py --validate-only --input Thomas_To_Resume_MLE.md
+python3 scripts/resume_pdf.py --validate-only --input markdown/google_mle/final.md
 
-# Generate PDF
-python3 scripts/resume_pdf.py --input Thomas_To_Resume_MLE.md --output Thomas_To_Resume_MLE
+# Generate PDF (outputs to pdf/ by default)
+python3 scripts/resume_pdf.py --input markdown/google_mle/final.md --output Thomas_To_Resume_Google_MLE
 ```
 
 ### Docker
 ```bash
 docker compose build
 docker compose run resume-pdf --validate-only
-docker compose run resume-pdf --input Thomas_To_Resume_MLE.md --output Thomas_To_Resume_MLE
+docker compose run resume-pdf --input markdown/google_mle/final.md --output Thomas_To_Resume_Google_MLE
 ```
 
 ## 5. General Engineering Standards
@@ -84,6 +86,9 @@ docker compose run resume-pdf --input Thomas_To_Resume_MLE.md --output Thomas_To
 - **Data:** Use Factories to generate test data; avoid brittle static fixtures.
 
 ## 7. Data Integrity Rules
-- `src/docs/resume.md` is the **READ-ONLY golden dataset**. It is NEVER modified by any skill, agent, or script.
-- Tailored resumes are written to `{PROJECT_ROOT}/<output_name>.md` as new files.
+- `docs/resume.md` is the **READ-ONLY golden dataset**. It is NEVER modified by any skill, agent, or script.
+- `docs/` directory is IMMUTABLE. No script or agent writes to this directory.
+- Tailored resumes are written to `markdown/<application_name>/generated.md` as new files.
+- Editable copies live at `markdown/<application_name>/final.md` for iteration.
+- PDFs are generated to `pdf/` from the `final.md` editable copy.
 - The PDF script reads from the tailored markdown, not the golden dataset directly (unless validating the golden dataset).

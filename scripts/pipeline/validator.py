@@ -1,0 +1,205 @@
+"""ATS compliance validation for resume markdown.
+
+Checks: banned words, passive voice, punctuation, character budget,
+ATS section headers, and XYZ bullet quality. Each check is an
+independent function returning a list of (severity, message) issues.
+"""
+
+from __future__ import annotations
+
+import re
+
+from .config import (
+    ATS_SECTIONS,
+    BANNED_WORDS,
+    CHAR_BUDGET_MAX,
+    CHAR_BUDGET_MIN,
+    Issue,
+)
+from .parser import strip_frontmatter
+
+
+def _check_banned_words(body_lower: str) -> list[Issue]:
+    """Check for banned words from the writing style guide.
+
+    Args:
+        body_lower: Lowercased resume body text.
+
+    Returns:
+        List of WARN issues for each banned word found.
+    """
+    issues: list[Issue] = []
+    for word in BANNED_WORDS:
+        pattern = r"\b" + re.escape(word) + r"\b"
+        matches = re.findall(pattern, body_lower)
+        if matches:
+            issues.append(("WARN", f"Banned word: '{word}' ({len(matches)}x)"))
+    return issues
+
+
+def _check_passive_voice(body_lower: str) -> list[Issue]:
+    """Check for passive voice constructions.
+
+    Detects "was/were/been/being + past participle" patterns using
+    a \\w+ed\\b heuristic for past participles.
+
+    Args:
+        body_lower: Lowercased resume body text.
+
+    Returns:
+        List of FAIL issues for each passive voice match.
+    """
+    issues: list[Issue] = []
+    passive_patterns = [
+        r"\bwas\s+\w+ed\b", r"\bwere\s+\w+ed\b",
+        r"\bbeen\s+\w+ed\b", r"\bbeing\s+\w+ed\b",
+    ]
+    for pat in passive_patterns:
+        for m in re.finditer(pat, body_lower):
+            issues.append(("FAIL", f"Passive voice: '{m.group()}'"))
+    return issues
+
+
+def _check_punctuation(body: str) -> list[Issue]:
+    """Check for prohibited punctuation: em dashes, double hyphens, semicolons.
+
+    Args:
+        body: Resume body text (original case preserved).
+
+    Returns:
+        List of FAIL issues for each punctuation violation.
+    """
+    issues: list[Issue] = []
+
+    if "\u2014" in body:
+        issues.append(("FAIL", "Em dash (\u2014) found"))
+    if "--" in body:
+        issues.append(("FAIL", "Double hyphen (--) found"))
+
+    for line in body.split("\n"):
+        stripped = line.strip()
+        if not stripped:
+            continue
+        no_urls = re.sub(r"https?://[^\s)]+", "", stripped)
+        if ";" in no_urls:
+            issues.append(("FAIL", f"Semicolon: '{stripped[:60]}...'"))
+
+    return issues
+
+
+def _check_char_budget(body: str) -> tuple[list[Issue], int]:
+    """Check visible character count against target budget.
+
+    Strips markdown syntax to count only visible characters.
+
+    Args:
+        body: Resume body text.
+
+    Returns:
+        Tuple of (issues, char_count) where char_count is the visible
+        character count after stripping markdown syntax.
+    """
+    issues: list[Issue] = []
+    plain = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", body)
+    plain = re.sub(r"[*#\-|]", "", plain)
+    plain = re.sub(r"<br>", "", plain)
+    visible = re.sub(r"\s+", " ", plain).strip()
+    char_count = len(visible)
+
+    budget_range = f"{CHAR_BUDGET_MIN}-{CHAR_BUDGET_MAX}"
+    if char_count < CHAR_BUDGET_MIN:
+        issues.append(("WARN", f"Under budget: {char_count} chars (target {budget_range})"))
+    elif char_count > CHAR_BUDGET_MAX:
+        issues.append(("WARN", f"Over budget: {char_count} chars (target {budget_range})"))
+    else:
+        issues.append(("PASS", f"Character count: {char_count} (target {budget_range})"))
+
+    return issues, char_count
+
+
+def _check_ats_sections(body: str) -> list[Issue]:
+    """Check that all required ATS section headers are present.
+
+    Args:
+        body: Resume body text.
+
+    Returns:
+        List of PASS/WARN/FAIL issues for section header compliance.
+    """
+    issues: list[Issue] = []
+    found = set(re.findall(r"^## (.+)$", body, re.MULTILINE))
+    missing = ATS_SECTIONS - found
+    extra = found - ATS_SECTIONS
+    if missing:
+        issues.append(("FAIL", f"Missing ATS sections: {', '.join(sorted(missing))}"))
+    if extra:
+        issues.append(("WARN", f"Non-standard sections: {', '.join(sorted(extra))}"))
+    if not missing and not extra:
+        issues.append(("PASS", "ATS sections valid"))
+    return issues
+
+
+def _check_bullet_quality(body: str) -> list[Issue]:
+    """Check XYZ bullet formula compliance and link validity.
+
+    Args:
+        body: Resume body text.
+
+    Returns:
+        List of WARN issues for weak bullets and FAIL for empty URLs.
+    """
+    issues: list[Issue] = []
+
+    bullets = re.findall(r"^- (.+)$", body, re.MULTILINE)
+    metric_re = (
+        r"\d+[%$kKmM]"
+        r"|\$[\d,.]+"
+        r"|\d+\+?\s*(?:years?|months?|min|hours?|days?|x\b)"
+        r"|by \d+"
+    )
+    weak = [b[:60] for b in bullets if not re.search(metric_re, b)]
+    if weak:
+        issues.append(("WARN", f"{len(weak)} bullets lack metrics (XYZ Y-component):"))
+        for w in weak[:5]:
+            issues.append(("WARN", f"  - {w}..."))
+
+    for display, url in re.findall(r"\[([^\]]+)\]\(([^)]*)\)", body):
+        if not url:
+            issues.append(("FAIL", f"Empty URL for link '{display}'"))
+
+    return issues
+
+
+def validate(text: str) -> tuple[list[Issue], int]:
+    """Run all validation checks on resume markdown content.
+
+    Checks performed (in order):
+        1. Banned words from writing style guide
+        2. Passive voice constructions
+        3. Prohibited punctuation (em dashes, double hyphens, semicolons)
+        4. Character budget (visible text within target range)
+        5. ATS-required section headers
+        6. XYZ bullet quality and link validity
+
+    Args:
+        text: Raw markdown content (may include YAML frontmatter).
+
+    Returns:
+        Tuple of (issues, char_count) where issues is a list of
+        (level, message) pairs with level in {"PASS", "WARN", "FAIL"}.
+    """
+    body = strip_frontmatter(text)
+    body_lower = body.lower()
+
+    issues: list[Issue] = []
+    issues.extend(_check_banned_words(body_lower))
+    issues.extend(_check_passive_voice(body_lower))
+    issues.extend(_check_punctuation(body))
+
+    budget_issues, char_count = _check_char_budget(body)
+    issues.extend(budget_issues)
+
+    issues.extend(_check_ats_sections(body))
+    issues.extend(_check_bullet_quality(body))
+
+    return issues, char_count

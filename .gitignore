@@ -1,7 +1,13 @@
-# Generated tailored resumes
+# Generated output directories
+markdown/
+!markdown/.gitkeep
+pdf/
+!pdf/.gitkeep
+
+# Legacy flat output (remove after migration)
 Thomas_To_Resume_*.md
 Thomas_To_Resume_*.pdf
-!src/docs/resume.md
+!docs/resume.md
 
 # Python
 __pycache__/

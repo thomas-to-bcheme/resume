@@ -1,23 +1,23 @@
 ---
 name: resume-tailor
 description: Use when tailoring resume to a job description, updating resume.md, or generating a job-specific PDF
-argument-hint: "[output PDF name, e.g. Thomas_To_Resume_MLE]"
+argument-hint: "[application folder name, e.g. google_mle]"
 ---
 
 # Resume Tailor Skill
 
-Read `src/docs/resume.md` as a READ-ONLY golden dataset, tailor content to a job description, and generate a named PDF. The golden dataset is NEVER modified.
+Read `docs/resume.md` as a READ-ONLY golden dataset, tailor content to a job description, and generate a named PDF. The golden dataset is NEVER modified.
 
 ## Arguments
 
-- `$ARGUMENTS` = output filename (without extension). Example: `Thomas_To_Resume_MLE`
-- If `$ARGUMENTS` is empty, prompt the user for the desired output name before proceeding.
+- `$ARGUMENTS` = application folder name (lowercase, underscore-delimited). Example: `google_mle`
+- If `$ARGUMENTS` is empty, prompt the user for the desired application name before proceeding.
 
 ## Workflow
 
 ### Step 1: Load Writing Standards
 
-Read `src/docs/writing_style_guide.md` as the writing style reference. All generated text must comply with these rules.
+Read `docs/writing_style_guide.md` as the writing style reference. All generated text must comply with these rules.
 
 ### Step 2: Extract Job Description (URL + Text Support)
 
@@ -26,12 +26,13 @@ Read `src/docs/writing_style_guide.md` as the writing style reference. All gener
 3. If WebFetch fails (403, timeout, JS-rendered page): inform the user the URL could not be fetched and ask them to paste the job description text directly
 4. If no URL found: look for job description text in the user's preceding message or referenced file
 5. If no job description found: ask the user to provide one before continuing
+6. **Archive the JD**: Write the extracted job description to `markdown/$ARGUMENTS/jd.md`
 
 ### Step 3: Read Golden Dataset as READ-ONLY
 
-Read `src/docs/resume.md` to get the full professional history (~9274 chars, multi-page). Store the content for passing to the resume agent.
+Read `docs/resume.md` to get the full professional history (~9274 chars, multi-page). Store the content for passing to the resume agent.
 
-**DO NOT modify `src/docs/resume.md` under any circumstances.**
+**DO NOT modify `docs/resume.md` under any circumstances.**
 
 ### Step 4: Delegate to Resume Agent
 
@@ -44,21 +45,21 @@ You are tailoring a resume for a specific job description.
 <paste the full JD text here>
 
 ## Golden Dataset (READ-ONLY source material)
-<paste the full src/docs/resume.md content here>
+<paste the full docs/resume.md content here>
 
 ## Output File
-Write the tailored resume to: {PROJECT_ROOT}/$ARGUMENTS.md
+Write the tailored resume to: {PROJECT_ROOT}/markdown/$ARGUMENTS/generated.md
 
 ## Instructions
-1. Read `src/docs/writing_style_guide.md` and enforce all writing rules
+1. Read `docs/writing_style_guide.md` and enforce all writing rules
 2. Select the 3-4 most relevant roles and 2-3 strongest bullets per role from the golden dataset
 3. Reframe selected bullets using the XYZ formula (mandatory)
 4. Reorder bullet points to front-load the most JD-relevant experience
 5. Weave JD-specific terminology into the Z (methods) component of each XYZ bullet
 6. Preserve all factual content. Do NOT fabricate experience, metrics, or credentials
 7. Maintain single-page fit: 4500-5000 characters
-8. Write the tailored content to {PROJECT_ROOT}/$ARGUMENTS.md using the Write tool
-9. NEVER modify src/docs/resume.md. You are writing a NEW file only
+8. Write the tailored content to {PROJECT_ROOT}/markdown/$ARGUMENTS/generated.md using the Write tool
+9. NEVER modify docs/resume.md. You are writing a NEW file only
 
 ## XYZ Bullet Formula (mandatory)
 Every bullet MUST follow: "Accomplished [X] as measured by [Y], by doing [Z]"
@@ -90,12 +91,17 @@ can, may, just, that, very, really, literally, actually, certainly, probably, ba
 - Active voice only ("Deployed" not "Was deployed")
 ```
 
+After the agent completes, copy `generated.md` to `final.md` in the same folder:
+```bash
+cp markdown/$ARGUMENTS/generated.md markdown/$ARGUMENTS/final.md
+```
+
 ### Step 5: Validate the Generated File
 
-After the resume agent finishes, validate the tailored resume (NOT `src/docs/resume.md`):
+After the resume agent finishes, validate the tailored resume (NOT `docs/resume.md`):
 
 ```bash
-python3 scripts/resume_pdf.py --validate-only --input $ARGUMENTS.md
+python3 scripts/resume_pdf.py --validate-only --input markdown/$ARGUMENTS/final.md
 ```
 
 If validation fails, delegate back to the resume agent with specific fix instructions. Do not attempt manual fixes.
@@ -103,8 +109,10 @@ If validation fails, delegate back to the resume agent with specific fix instruc
 ### Step 6: Generate PDF from the Generated File
 
 ```bash
-python3 scripts/resume_pdf.py --input $ARGUMENTS.md --output $ARGUMENTS
+python3 scripts/resume_pdf.py --input markdown/$ARGUMENTS/final.md --output Thomas_To_Resume_$ARGUMENTS
 ```
+
+PDF is written to `pdf/Thomas_To_Resume_$ARGUMENTS.pdf`.
 
 If `$ARGUMENTS` was not provided, use the default name `Thomas_To_Resume`.
 
@@ -114,25 +122,32 @@ Summarize to the user:
 - JD source (URL fetched or pasted text)
 - Key changes made (which roles selected, keywords added)
 - Character count of the body content
-- Output files: `$ARGUMENTS.md` and `$ARGUMENTS.pdf`
+- Output files:
+  - JD archive: `markdown/$ARGUMENTS/jd.md`
+  - AI baseline: `markdown/$ARGUMENTS/generated.md`
+  - Editable copy: `markdown/$ARGUMENTS/final.md`
+  - PDF: `pdf/Thomas_To_Resume_$ARGUMENTS.pdf`
 - Any validation warnings
-- Confirm `src/docs/resume.md` was NOT modified
+- Confirm `docs/resume.md` was NOT modified
+- Remind user: edit `final.md` and re-run Step 6 to regenerate PDF
 
 ## Key References
 
 | Resource | Path | Access |
 |----------|------|--------|
-| Golden dataset | `src/docs/resume.md` | **READ-ONLY** |
+| Golden dataset | `docs/resume.md` | **READ-ONLY** |
+| Writing style | `docs/writing_style_guide.md` | READ-ONLY |
 | Resume agent | `.claude/agents/resume.md` | Delegated |
 | PDF script | `scripts/resume_pdf.py` | Execute |
-| Writing style | `src/docs/writing_style_guide.md` | READ-ONLY |
-| Generated markdown | `{PROJECT_ROOT}/$ARGUMENTS.md` | WRITE (new) |
-| Generated PDF | `{PROJECT_ROOT}/$ARGUMENTS.pdf` | WRITE (new) |
+| JD archive | `markdown/$ARGUMENTS/jd.md` | WRITE (new) |
+| Generated markdown | `markdown/$ARGUMENTS/generated.md` | WRITE (new) |
+| Editable markdown | `markdown/$ARGUMENTS/final.md` | WRITE (copy) |
+| Generated PDF | `pdf/Thomas_To_Resume_$ARGUMENTS.pdf` | WRITE (new) |
 
 ## Boundaries
 
 - Does NOT push to git or auto-commit
 - Does NOT fabricate experience, metrics, or credentials
-- Does NOT modify `src/docs/resume.md` under any circumstances
+- Does NOT modify `docs/resume.md` under any circumstances
 - Escalates to user if content changes alter the factual record
-- Batch-safe: each invocation reads the same immutable golden dataset and writes to independent output files
+- Batch-safe: each invocation reads the same immutable golden dataset and writes to independent output folders
