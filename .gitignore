@@ -1,0 +1,15 @@
+# Generated tailored resumes
+Thomas_To_Resume_*.md
+Thomas_To_Resume_*.pdf
+!src/docs/resume.md
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# OS
+.DS_Store
+
+# Environment
+.env*

@@ -1,0 +1,6 @@
+services:
+  resume-pdf:
+    build: .
+    volumes:
+      - .:/app
+    entrypoint: ["python3", "scripts/resume_pdf.py"]
