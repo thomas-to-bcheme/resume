@@ -1,0 +1,154 @@
+---
+name: coverletter-tailor
+description: Use when generating a cover letter tailored to a job description. Reads the golden dataset and produces a job-specific cover letter PDF.
+argument-hint: "[application folder name, e.g. google_mle]"
+---
+
+# Cover Letter Tailor Skill
+
+Read `docs/resume.md` as a READ-ONLY golden dataset, tailor a cover letter to a job description, and generate a named PDF. The golden dataset is NEVER modified.
+
+## Arguments
+
+- `$ARGUMENTS` = application folder name (lowercase, underscore-delimited). Example: `google_mle`
+- If `$ARGUMENTS` is empty, prompt the user for the desired application name before proceeding.
+
+## Workflow
+
+### Step 1: Load Writing Standards
+
+Read `docs/writing_style_guide.md` as the writing style reference. All generated text must comply with these rules.
+
+### Step 2: Extract or Reuse Job Description
+
+1. Check if `markdown/$ARGUMENTS/jd.md` already exists (from a prior `/resume-tailor` run or previous invocation)
+2. If it exists: read it and use the content as the job description. Skip extraction.
+3. If it does not exist:
+   a. Check if the user provided a URL in their message or arguments (look for `https://` or `http://` patterns)
+   b. If URL found: use `WebFetch` tool to retrieve the page content, then extract the job description text from the fetched content
+   c. If WebFetch fails (403, timeout, JS-rendered page): inform the user the URL could not be fetched and ask them to paste the job description text directly
+   d. If no URL found: look for job description text in the user's preceding message or referenced file
+   e. If no job description found: ask the user to provide one before continuing
+   f. **Archive the JD**: Write the extracted job description to `markdown/$ARGUMENTS/jd.md`
+
+### Step 3: Read Golden Dataset as READ-ONLY
+
+Read `docs/resume.md` to get the full professional history (~9274 chars, multi-page). Store the content for passing to the cover letter agent.
+
+**DO NOT modify `docs/resume.md` under any circumstances.**
+
+### Step 4: Delegate to Cover Letter Agent
+
+Use the `Agent` tool with `subagent_type: coverletter` to generate the cover letter. Pass these instructions to the agent:
+
+```
+You are generating a cover letter tailored to a specific job description.
+
+## Job Description
+<paste the full JD text here>
+
+## Golden Dataset (READ-ONLY source material)
+<paste the full docs/resume.md content here>
+
+## Output File
+Write the tailored cover letter to: {PROJECT_ROOT}/markdown/$ARGUMENTS/coverletter_generated.md
+
+## Instructions
+1. Read `docs/writing_style_guide.md` and enforce all writing rules
+2. Select 2-3 most relevant roles and 3-5 strongest achievements from the golden dataset
+3. Write in narrative paragraph form. Do NOT use bullet points
+4. Weave JD-specific terminology naturally into paragraphs
+5. Reference the company and role by name
+6. Include quantifiable metrics from the golden dataset woven into narrative
+7. Preserve all factual content. Do NOT fabricate experience, metrics, or credentials
+8. Target 250-400 words (1500-2500 visible characters)
+9. Write the tailored content to {PROJECT_ROOT}/markdown/$ARGUMENTS/coverletter_generated.md using the Write tool
+10. NEVER modify docs/resume.md. You are writing a NEW file only
+
+## Cover Letter Structure (mandatory)
+- H1: THOMAS TO (centered name)
+- Contact line (same as resume)
+- Date line (current date)
+- Greeting: "Dear Hiring Manager,"
+- Opening paragraph (2-3 sentences): State the role, express specific interest, one headline accomplishment
+- Body paragraph 1 (3-4 sentences): Most relevant experience mapped to JD requirements with specific metrics
+- Body paragraph 2 (3-4 sentences): Second cluster of relevant experience or technical skills alignment
+- Optional body paragraph 3 (2-3 sentences): Only if a distinct third theme emerges from JD
+- Closing paragraph (2-3 sentences): Reiterate fit, express interest in discussing further
+- Sign-off: "Sincerely," followed by "Thomas To"
+
+## Tense
+- Current roles: present tense
+- Prior roles: past tense
+
+## Banned Words
+can, may, just, that, very, really, literally, actually, certainly, probably, basically, could, maybe, delve, embark, enlightening, esteemed, shed light, craft, curating, imagine, realm, game-changer, unlock, discover, skyrocket, abyss, not alone, in a world where, revolutionize, disruptive, utilize, utilizing, dive deep, tapestry, illuminate, unveil, pivotal, intricate, elucidate, hence, furthermore, realm, however, harness, exciting, groundbreaking, cutting-edge, remarkable, it remains to be seen, glimpse into, navigating, landscape, stark, testament, in summary, in conclusion, moreover, boost, skyrocketing, opened up, powerful, inquiries, ever-evolving
+
+## Formatting Rules
+- No em dashes. Use commas, periods, or other standard punctuation only
+- No semicolons
+- No asterisks in output text
+- No bullet points. Paragraphs only
+- Active voice only ("Deployed" not "Was deployed")
+```
+
+After the agent completes, copy `coverletter_generated.md` to `coverletter_final.md` in the same folder:
+```bash
+cp markdown/$ARGUMENTS/coverletter_generated.md markdown/$ARGUMENTS/coverletter_final.md
+```
+
+### Step 5: Validate the Generated File
+
+After the cover letter agent finishes, validate the tailored cover letter (NOT `docs/resume.md`):
+
+```bash
+python3 scripts/coverletter_pdf.py --validate-only --input markdown/$ARGUMENTS/coverletter_final.md
+```
+
+If validation fails, delegate back to the cover letter agent with specific fix instructions. Do not attempt manual fixes.
+
+### Step 6: Generate PDF from the Generated File
+
+```bash
+python3 scripts/coverletter_pdf.py --input markdown/$ARGUMENTS/coverletter_final.md --output Thomas_To_CoverLetter_$ARGUMENTS
+```
+
+PDF is written to `pdf/Thomas_To_CoverLetter_$ARGUMENTS.pdf`.
+
+If `$ARGUMENTS` was not provided, use the default name `Thomas_To_CoverLetter`.
+
+### Step 7: Report Results
+
+Summarize to the user:
+- JD source (URL fetched, pasted text, or reused from existing jd.md)
+- Key talking points selected (which roles, which achievements)
+- Word count of the body content
+- Output files:
+  - JD archive: `markdown/$ARGUMENTS/jd.md`
+  - AI baseline: `markdown/$ARGUMENTS/coverletter_generated.md`
+  - Editable copy: `markdown/$ARGUMENTS/coverletter_final.md`
+  - PDF: `pdf/Thomas_To_CoverLetter_$ARGUMENTS.pdf`
+- Any validation warnings
+- Confirm `docs/resume.md` was NOT modified
+- Remind user: edit `coverletter_final.md` and re-run Step 6 to regenerate PDF
+
+## Key References
+
+| Resource | Path | Access |
+|----------|------|--------|
+| Golden dataset | `docs/resume.md` | **READ-ONLY** |
+| Writing style | `docs/writing_style_guide.md` | READ-ONLY |
+| Cover letter agent | `.claude/agents/coverletter.md` | Delegated |
+| PDF script | `scripts/coverletter_pdf.py` | Execute |
+| JD archive | `markdown/$ARGUMENTS/jd.md` | READ or WRITE (new) |
+| Generated markdown | `markdown/$ARGUMENTS/coverletter_generated.md` | WRITE (new) |
+| Editable markdown | `markdown/$ARGUMENTS/coverletter_final.md` | WRITE (copy) |
+| Generated PDF | `pdf/Thomas_To_CoverLetter_$ARGUMENTS.pdf` | WRITE (new) |
+
+## Boundaries
+
+- Does NOT push to git or auto-commit
+- Does NOT fabricate experience, metrics, or credentials
+- Does NOT modify `docs/resume.md` under any circumstances
+- Escalates to user if content changes alter the factual record
+- Batch-safe: each invocation reads the same immutable golden dataset and writes to independent output folders

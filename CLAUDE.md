@@ -21,24 +21,33 @@ You are the **Lead Orchestrator**. Your goal is to coordinate changes across the
 
 Standalone resume tailoring microservice powered by Claude Code. Reads a golden dataset (`docs/resume.md`), tailors content to job descriptions using AI agents, and generates ATS-optimized single-page PDFs.
 
-### Workflow
+### Workflow: Resume
 1. User invokes `/resume-tailor <application_name>` with a job description (URL or pasted text)
 2. Claude Code reads the golden dataset and writing style rules from `docs/`
 3. Resume agent tailors content to the JD using XYZ bullet formula
 4. Validation script checks ATS compliance, banned words, character budget
 5. PDF generator produces a single-page resume
 
+### Workflow: Cover Letter
+1. User invokes `/coverletter-tailor <application_name>` with a job description (URL or pasted text)
+2. Claude Code reads the golden dataset and writing style rules from `docs/`
+3. If `jd.md` exists from a prior resume-tailor run, it is reused
+4. Cover letter agent generates narrative paragraphs tailored to the JD
+5. Validation script checks banned words, passive voice, punctuation, word count
+6. PDF generator produces a single-page cover letter
+
 ### Key Directories
 - `docs/` - Golden datasets and reference files (IMMUTABLE, READ-ONLY)
 - `markdown/` - Generated markdown output (one subfolder per application)
 - `pdf/` - Generated PDF output
-- `scripts/` - Python pipeline package (`resume_pdf.py` + `pipeline/` modules)
-- `.claude/skills/resume-tailor/` - Skill orchestrator (7-step workflow)
-- `.claude/agents/` - Resume tailoring sub-agent
+- `scripts/` - Python pipeline packages (`resume_pdf.py` + `resume_pipeline/`, `coverletter_pdf.py` + `coverletter_pipeline/`)
+- `.claude/skills/resume-tailor/` - Resume skill orchestrator (7-step workflow)
+- `.claude/skills/coverletter-tailor/` - Cover letter skill orchestrator (7-step workflow)
+- `.claude/agents/` - Resume and cover letter tailoring sub-agents
 
 ### Tech Stack
 - **AI**: Claude Code with sub-agents
-- **PDF Generation**: Python 3.12+, fpdf2 (modular pipeline in `scripts/pipeline/`)
+- **PDF Generation**: Python 3.12+, fpdf2 (modular pipeline in `scripts/resume_pipeline/`)
 - **Containerization**: Docker (optional)
 
 ## 4. Commands
@@ -48,7 +57,7 @@ Standalone resume tailoring microservice powered by Claude Code. Reads a golden 
 - **Parameters:** Prefer named flags (`--input`) over positional args.
 - **Exit Codes:** Return `0` for success, non-zero for failure.
 
-### PDF Script
+### Resume PDF Script
 ```bash
 # Validate golden dataset
 python3 scripts/resume_pdf.py --validate-only
@@ -58,6 +67,15 @@ python3 scripts/resume_pdf.py --validate-only --input markdown/google_mle/final.
 
 # Generate PDF (outputs to pdf/ by default)
 python3 scripts/resume_pdf.py --input markdown/google_mle/final.md --output Thomas_To_Resume_Google_MLE
+```
+
+### Cover Letter PDF Script
+```bash
+# Validate a tailored cover letter
+python3 scripts/coverletter_pdf.py --validate-only --input markdown/google_mle/coverletter_final.md
+
+# Generate PDF (outputs to pdf/ by default)
+python3 scripts/coverletter_pdf.py --input markdown/google_mle/coverletter_final.md --output Thomas_To_CoverLetter_Google_MLE
 ```
 
 ### Docker
@@ -89,6 +107,7 @@ docker compose run resume-pdf --input markdown/google_mle/final.md --output Thom
 - `docs/resume.md` is the **READ-ONLY golden dataset**. It is NEVER modified by any skill, agent, or script.
 - `docs/` directory is IMMUTABLE. No script or agent writes to this directory.
 - Tailored resumes are written to `markdown/<application_name>/generated.md` as new files.
-- Editable copies live at `markdown/<application_name>/final.md` for iteration.
-- PDFs are generated to `pdf/` from the `final.md` editable copy.
-- The PDF script reads from the tailored markdown, not the golden dataset directly (unless validating the golden dataset).
+- Tailored cover letters are written to `markdown/<application_name>/coverletter_generated.md` as new files.
+- Editable copies live at `markdown/<application_name>/final.md` (resume) and `coverletter_final.md` (cover letter) for iteration.
+- PDFs are generated to `pdf/` from the editable copies.
+- The PDF scripts read from the tailored markdown, not the golden dataset directly (unless validating the golden dataset).
