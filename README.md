@@ -28,7 +28,7 @@ pip install -r scripts/requirements.txt
 Open Claude Code in this directory and run:
 
 ```
-/resume-tailor Thomas_To_Resume_MLE
+/resume-tailor 
 ```
 
 Then paste a job description (or provide a URL). Claude Code will:
@@ -74,10 +74,9 @@ docker compose run resume-pdf --input Thomas_To_Resume_MLE.md --output Thomas_To
 Each invocation reads the same immutable golden dataset and writes to independent output files. Run multiple tailoring sessions for different roles:
 
 ```
-/resume-tailor Thomas_To_Resume_MLE
-/resume-tailor Thomas_To_Resume_SWE
-/resume-tailor Thomas_To_Resume_DataEng
+/resume-tailor [multiple url]
 ```
+Recommendation to use claude-code or AI web extension to scrape, and clean each tab separated by commas.
 
 ## File Structure
 
@@ -91,13 +90,13 @@ resume/
 ├── .claude/
 │   ├── skills/resume-tailor/SKILL.md            # 7-step skill orchestrator
 │   ├── agents/resume.md                         # Resume tailoring sub-agent
-│   └── agentic_kit/00_init/
-│       └── boilerplate_humanoid_speech.md        # Writing style rules
+│   └── agentic_kit/                              # (reserved for future kits)
 ├── scripts/
 │   ├── resume_pdf.py                            # PDF generator + validator
 │   └── requirements.txt                         # Python deps (fpdf2)
 └── src/docs/
-    └── resume.md                                # Golden dataset (READ-ONLY)
+    ├── resume.md                                # Golden dataset (READ-ONLY)
+    └── writing_style_guide.md                   # Writing style rules (READ-ONLY)
 ```
 
 ## Key Concepts
@@ -105,5 +104,5 @@ resume/
 - **Golden Dataset**: `src/docs/resume.md` is never modified. It contains the full professional history.
 - **XYZ Bullet Formula**: Every bullet follows "Accomplished [X] as measured by [Y], by doing [Z]".
 - **ATS Sections**: Only four H2 headers permitted: PROFESSIONAL SUMMARY, TECHNICAL SKILLS, PROFESSIONAL EXPERIENCE, EDUCATION.
-- **Character Budget**: Tailored resumes target 3500-4000 characters for single-page fit.
+- **Character Budget**: Tailored resumes target 4500-5000 characters for single-page fit.
 - **Banned Words**: A curated list of AI-sounding words is enforced during validation.

@@ -31,7 +31,6 @@ Standalone resume tailoring microservice powered by Claude Code. Reads a golden 
 ### Key Directories
 - `.claude/skills/resume-tailor/` - Skill orchestrator (7-step workflow)
 - `.claude/agents/` - Resume tailoring sub-agent
-- `.claude/agentic_kit/` - Writing style rules
 - `scripts/` - PDF generation and validation (`resume_pdf.py`)
 - `src/docs/resume.md` - Golden dataset (READ-ONLY, never modified)
 

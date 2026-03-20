@@ -29,7 +29,7 @@ You generate job-tailored resume markdown files. You NEVER modify `src/docs/resu
 
 ```
 Source:  src/docs/resume.md (READ-ONLY golden dataset, provided in prompt)
-Output: {PROJECT_ROOT}/<output_filename>.md (tailored, 3500-4000 chars)
+Output: {PROJECT_ROOT}/<output_filename>.md (tailored, 4500-5000 chars)
 Build:  python3 scripts/resume_pdf.py --input <output_filename>.md --output <output_filename>
 ```
 
@@ -90,7 +90,7 @@ Examples:
 
 ## Writing Style (Humanoid Speech)
 
-Source: `.claude/agentic_kit/00_init/boilerplate_humanoid_speech.md`
+Source: `src/docs/writing_style_guide.md`
 
 ### DO
 - Use clear, simple language

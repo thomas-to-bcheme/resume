@@ -17,7 +17,7 @@ Read `src/docs/resume.md` as a READ-ONLY golden dataset, tailor content to a job
 
 ### Step 1: Load Writing Standards
 
-Read `.claude/agentic_kit/00_init/boilerplate_humanoid_speech.md` as the writing style reference. All generated text must comply with these rules.
+Read `src/docs/writing_style_guide.md` as the writing style reference. All generated text must comply with these rules.
 
 ### Step 2: Extract Job Description (URL + Text Support)
 
@@ -50,13 +50,13 @@ You are tailoring a resume for a specific job description.
 Write the tailored resume to: {PROJECT_ROOT}/$ARGUMENTS.md
 
 ## Instructions
-1. Read `.claude/agentic_kit/00_init/boilerplate_humanoid_speech.md` and enforce all writing rules
+1. Read `src/docs/writing_style_guide.md` and enforce all writing rules
 2. Select the 3-4 most relevant roles and 2-3 strongest bullets per role from the golden dataset
 3. Reframe selected bullets using the XYZ formula (mandatory)
 4. Reorder bullet points to front-load the most JD-relevant experience
 5. Weave JD-specific terminology into the Z (methods) component of each XYZ bullet
 6. Preserve all factual content. Do NOT fabricate experience, metrics, or credentials
-7. Maintain single-page fit: 3500-4000 characters
+7. Maintain single-page fit: 4500-5000 characters
 8. Write the tailored content to {PROJECT_ROOT}/$ARGUMENTS.md using the Write tool
 9. NEVER modify src/docs/resume.md. You are writing a NEW file only
 
@@ -125,7 +125,7 @@ Summarize to the user:
 | Golden dataset | `src/docs/resume.md` | **READ-ONLY** |
 | Resume agent | `.claude/agents/resume.md` | Delegated |
 | PDF script | `scripts/resume_pdf.py` | Execute |
-| Writing style | `.claude/agentic_kit/00_init/boilerplate_humanoid_speech.md` | READ-ONLY |
+| Writing style | `src/docs/writing_style_guide.md` | READ-ONLY |
 | Generated markdown | `{PROJECT_ROOT}/$ARGUMENTS.md` | WRITE (new) |
 | Generated PDF | `{PROJECT_ROOT}/$ARGUMENTS.pdf` | WRITE (new) |
 
