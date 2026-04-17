@@ -55,10 +55,6 @@ def parse_args() -> argparse.Namespace:
         "--validate-only", action="store_true",
         help="Run validation without generating PDF",
     )
-    parser.add_argument(
-        "--force", action="store_true",
-        help="Generate PDF even if validation FAILs exist (use for human-reviewed resumes)",
-    )
     return parser.parse_args()
 
 
@@ -108,11 +104,9 @@ def main() -> None:
     if args.validate_only:
         sys.exit(1 if has_fail else 0)
 
-    if has_fail and not args.force:
+    if has_fail:
         logger.error("Validation failures found. Fix before generating PDF.")
         sys.exit(1)
-    if has_fail and args.force:
-        logger.warning("Proceeding with --force despite validation failures.")
 
     # -- Generate PDF --
     elements = parse_resume(body)
