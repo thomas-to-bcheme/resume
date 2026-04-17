@@ -84,15 +84,6 @@ Full Stack AI Engineer with 5+ years building generative AI features, Retrieval-
 ## EDUCATION
 
 **Bachelor of Science, Biochemical Engineering** | University of California, Davis | Davis, CA | *Sep 2019 – Jun 2022*
-
-**Certificate of Proficiency, Biomanufacturing Skills and Biotechnology** | Laney College | Oakland, CA | *Sep 2017 – Sep 2019*
-
-## CERTIFICATIONS
-
+- Advanced Machine Learning with Agentic AI
 - AWS Cloud Technical Essentials
-- Advanced Machine Learning with Agentic AI (ongoing)
 - Data Engineering Foundations
-- Digital Transformation
-- Foundations of AI and Machine Learning
-- React Basics
-- Learning R

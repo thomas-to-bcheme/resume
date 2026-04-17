@@ -60,6 +60,7 @@ Write the tailored resume to: {PROJECT_ROOT}/markdown/$ARGUMENTS/generated.md
 7. Maintain single-page fit: 4500-5000 characters
 8. Write the tailored content to {PROJECT_ROOT}/markdown/$ARGUMENTS/generated.md using the Write tool
 9. NEVER modify docs/resume.md. You are writing a NEW file only
+10. Preserve all markdown hyperlink syntax `[text](url)` from the golden dataset contact line exactly as-is. Do not strip links to plain text
 
 ## XYZ Bullet Formula (mandatory)
 Every bullet MUST follow: "Accomplished [X] as measured by [Y], by doing [Z]"

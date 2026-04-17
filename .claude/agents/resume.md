@@ -128,6 +128,11 @@ Review every response. Confirm zero em dashes, zero semicolons, zero banned word
 ### Bullet Format (XYZ)
 `Accomplished [X] as measured by [Y], by doing [Z]`
 
+### Hyperlinks
+- Preserve all markdown hyperlink syntax `[text](url)` from the golden dataset contact line exactly as-is
+- Do not strip, flatten, or reformat hyperlinks to plain text
+- The PDF pipeline renders these as clickable links
+
 ### Tense
 - **Current roles**: Present tense ("Deploy", "Build", "Architect")
 - **Prior roles**: Past tense ("Deployed", "Built", "Architected")
