@@ -50,13 +50,31 @@ CONTACT_SPACE_AFTER: float = 0 / 72
 H2_RULE_WEIGHT: float = 1.5 / 72
 
 
-# ── ATS Required Sections ───────────────────────────────────────────
-ATS_SECTIONS: set[str] = {
+# ── ATS Sections ─────────────────────────────────────────────────────
+# Required sections must appear in every tailored resume. Missing = FAIL.
+ATS_REQUIRED_SECTIONS: set[str] = {
     "PROFESSIONAL SUMMARY",
     "TECHNICAL SKILLS",
     "PROFESSIONAL EXPERIENCE",
     "EDUCATION",
 }
+
+# Optional sections are permitted when they add JD-relevant context.
+# Tailoring agents include them case-by-case based on job description fit.
+ATS_OPTIONAL_SECTIONS: set[str] = {
+    "PROJECTS",
+    "CERTIFICATIONS, AWARDS, & LEADERSHIP",
+}
+
+# Canonical rendering order. Sections outside this sequence trigger FAIL.
+SECTION_ORDER: tuple[str, ...] = (
+    "PROFESSIONAL SUMMARY",
+    "TECHNICAL SKILLS",
+    "PROFESSIONAL EXPERIENCE",
+    "PROJECTS",
+    "EDUCATION",
+    "CERTIFICATIONS, AWARDS, & LEADERSHIP",
+)
 
 
 # ── Banned Words (from docs/writing_style_guide.md) ─────────────────

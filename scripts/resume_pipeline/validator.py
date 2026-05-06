@@ -10,11 +10,13 @@ from __future__ import annotations
 import re
 
 from .config import (
-    ATS_SECTIONS,
+    ATS_OPTIONAL_SECTIONS,
+    ATS_REQUIRED_SECTIONS,
     BANNED_WORDS,
     CHAR_BUDGET_MAX,
     CHAR_BUDGET_MIN,
     Issue,
+    SECTION_ORDER,
 )
 from .parser import strip_frontmatter
 
@@ -118,7 +120,11 @@ def _check_char_budget(body: str) -> tuple[list[Issue], int]:
 
 
 def _check_ats_sections(body: str) -> list[Issue]:
-    """Check that all required ATS section headers are present.
+    """Check ATS section headers against required + optional allowlists.
+
+    Required sections must all be present (missing = FAIL).
+    Optional sections are permitted when JD-relevant (present = PASS, absent = PASS).
+    Unknown sections (neither required nor optional) trigger WARN.
 
     Args:
         body: Resume body text.
@@ -128,15 +134,39 @@ def _check_ats_sections(body: str) -> list[Issue]:
     """
     issues: list[Issue] = []
     found = set(re.findall(r"^## (.+)$", body, re.MULTILINE))
-    missing = ATS_SECTIONS - found
-    extra = found - ATS_SECTIONS
+    allowed = ATS_REQUIRED_SECTIONS | ATS_OPTIONAL_SECTIONS
+    missing = ATS_REQUIRED_SECTIONS - found
+    unknown = found - allowed
     if missing:
-        issues.append(("FAIL", f"Missing ATS sections: {', '.join(sorted(missing))}"))
-    if extra:
-        issues.append(("WARN", f"Non-standard sections: {', '.join(sorted(extra))}"))
-    if not missing and not extra:
+        issues.append(("FAIL", f"Missing required sections: {', '.join(sorted(missing))}"))
+    if unknown:
+        issues.append(("WARN", f"Unknown sections: {', '.join(sorted(unknown))}"))
+    if not missing and not unknown:
         issues.append(("PASS", "ATS sections valid"))
     return issues
+
+
+def _check_section_order(body: str) -> list[Issue]:
+    """Check that sections appear in canonical order.
+
+    Extracts H2 headers in document order, filters to known sections
+    (required or optional), and verifies their positions are a monotonically
+    non-decreasing subsequence of SECTION_ORDER. Unknown sections are ignored
+    here (already flagged by _check_ats_sections).
+
+    Args:
+        body: Resume body text.
+
+    Returns:
+        List with one PASS or FAIL issue.
+    """
+    found_in_order = re.findall(r"^## (.+)$", body, re.MULTILINE)
+    canonical_idx = {name: i for i, name in enumerate(SECTION_ORDER)}
+    indices = [canonical_idx[s] for s in found_in_order if s in canonical_idx]
+    if indices != sorted(indices):
+        known = [s for s in found_in_order if s in canonical_idx]
+        return [("FAIL", f"Sections out of canonical order: {known}")]
+    return [("PASS", "Section order valid")]
 
 
 def _check_bullet_quality(body: str) -> list[Issue]:
@@ -178,8 +208,9 @@ def validate(text: str) -> tuple[list[Issue], int]:
         2. Passive voice constructions
         3. Prohibited punctuation (em dashes, double hyphens, semicolons)
         4. Character budget (visible text within target range)
-        5. ATS-required section headers
-        6. XYZ bullet quality and link validity
+        5. ATS section headers (required + optional allowlist)
+        6. Section order (canonical sequence)
+        7. XYZ bullet quality and link validity
 
     Args:
         text: Raw markdown content (may include YAML frontmatter).
@@ -200,6 +231,7 @@ def validate(text: str) -> tuple[list[Issue], int]:
     issues.extend(budget_issues)
 
     issues.extend(_check_ats_sections(body))
+    issues.extend(_check_section_order(body))
     issues.extend(_check_bullet_quality(body))
 
     return issues, char_count

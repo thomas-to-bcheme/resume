@@ -79,12 +79,14 @@ Examples:
 
 ## ATS Optimization Rules
 
-1. Only four H2 section headers are permitted: PROFESSIONAL SUMMARY, TECHNICAL SKILLS, PROFESSIONAL EXPERIENCE, EDUCATION
-2. No H3 sub-headers within any section
-3. Keywords from the job description must appear in PROFESSIONAL SUMMARY and TECHNICAL SKILLS
-4. Job titles in PROFESSIONAL EXPERIENCE must be recognizable industry-standard titles
-5. Do not use tables, columns, or graphics. Plain text with bullets only
-6. Spell out acronyms on first use where space permits (e.g., "Retrieval-Augmented Generation (RAG)")
+1. Required H2 sections (always include): PROFESSIONAL SUMMARY, TECHNICAL SKILLS, PROFESSIONAL EXPERIENCE, EDUCATION
+2. Optional H2 sections (include only when JD-relevant): PROJECTS, CERTIFICATIONS, AWARDS, & LEADERSHIP
+3. Canonical order: PROFESSIONAL SUMMARY, TECHNICAL SKILLS, PROFESSIONAL EXPERIENCE, PROJECTS, EDUCATION, CERTIFICATIONS, AWARDS, & LEADERSHIP
+4. No H3 sub-headers within any section
+5. Keywords from the job description must appear in PROFESSIONAL SUMMARY and TECHNICAL SKILLS
+6. Job titles in PROFESSIONAL EXPERIENCE must be recognizable industry-standard titles
+7. Do not use tables, columns, or graphics. Plain text with bullets only
+8. Spell out acronyms on first use where space permits (e.g., "Retrieval-Augmented Generation (RAG)")
 
 ---
 

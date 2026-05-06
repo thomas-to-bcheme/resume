@@ -104,8 +104,8 @@ docker compose run resume-pdf --input markdown/google_mle/final.md --output Thom
 - **Data:** Use Factories to generate test data; avoid brittle static fixtures.
 
 ## 7. Data Integrity Rules
-- `docs/resume.md` is the **READ-ONLY golden dataset**. It is NEVER modified by any skill, agent, or script.
-- `docs/` directory is IMMUTABLE. No script or agent writes to this directory.
+- `docs/resume.md` is the **READ-ONLY golden dataset**. It is NEVER modified by any skill, agent, or script, with one sanctioned exception: `/resume-update` (`.claude/skills/resume-update/`) is the single authorized edit path, which delegates writes to the `resume-update` agent.
+- `docs/` directory is IMMUTABLE. No script or agent writes to this directory, except the `resume-update` agent writing to `docs/resume.md` via the `/resume-update` skill.
 - Tailored resumes are written to `markdown/<application_name>/generated.md` as new files.
 - Tailored cover letters are written to `markdown/<application_name>/coverletter_generated.md` as new files.
 - Editable copies live at `markdown/<application_name>/final.md` (resume) and `coverletter_final.md` (cover letter) for iteration.
