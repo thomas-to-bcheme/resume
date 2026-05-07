@@ -36,6 +36,13 @@ Standalone resume tailoring microservice powered by Claude Code. Reads a golden 
 5. Validation script checks banned words, passive voice, punctuation, word count
 6. PDF generator produces a single-page cover letter
 
+### Workflow: Application Response
+1. User invokes `/resume-response [folder_name or JD URL] <prompt>` with a free-text question
+2. Claude Code reads the golden dataset and writing style rules from `docs/`
+3. If `jd.md` exists from a prior resume-tailor or coverletter-tailor run, it is reused
+4. Response agent generates a <=300-word answer grounded in resume facts and JD context
+5. Response is written to `markdown/<folder_name>/response_<slug>.md` and displayed in conversation
+
 ### Key Directories
 - `docs/` - Golden datasets and reference files (IMMUTABLE, READ-ONLY)
 - `markdown/` - Generated markdown output (one subfolder per application)
@@ -43,7 +50,8 @@ Standalone resume tailoring microservice powered by Claude Code. Reads a golden 
 - `scripts/` - Python pipeline packages (`resume_pdf.py` + `resume_pipeline/`, `coverletter_pdf.py` + `coverletter_pipeline/`)
 - `.claude/skills/resume-tailor/` - Resume skill orchestrator (7-step workflow)
 - `.claude/skills/coverletter-tailor/` - Cover letter skill orchestrator (7-step workflow)
-- `.claude/agents/` - Resume and cover letter tailoring sub-agents
+- `.claude/skills/resume-response/` - Application response skill orchestrator (9-step workflow)
+- `.claude/agents/` - Resume, cover letter, and application response sub-agents
 
 ### Tech Stack
 - **AI**: Claude Code with sub-agents
@@ -109,5 +117,6 @@ docker compose run resume-pdf --input markdown/google_mle/final.md --output Thom
 - Tailored resumes are written to `markdown/<application_name>/generated.md` as new files.
 - Tailored cover letters are written to `markdown/<application_name>/coverletter_generated.md` as new files.
 - Editable copies live at `markdown/<application_name>/final.md` (resume) and `coverletter_final.md` (cover letter) for iteration.
+- Application responses are written to `markdown/<application_name>/response_<slug>.md` as new files.
 - PDFs are generated to `pdf/` from the editable copies.
 - The PDF scripts read from the tailored markdown, not the golden dataset directly (unless validating the golden dataset).
