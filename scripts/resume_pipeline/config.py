@@ -94,20 +94,15 @@ BANNED_WORDS: list[str] = [
 ]
 
 
-# ── Validation Thresholds ───────────────────────────────────────────
-CHAR_BUDGET_MIN: int = 4500
-CHAR_BUDGET_MAX: int = 5000
-
-
 # ── Adjustable Layout Config ────────────────────────────────────────
 
 @dataclasses.dataclass
 class LayoutConfig:
-    """Adjustable layout parameters for single-page PDF optimization.
+    """Adjustable layout parameters for PDF optimization.
 
     The page-fit optimizer creates a default LayoutConfig and progressively
     tightens values (smaller fonts, reduced spacing, narrower margins) until
-    the rendered PDF fits on one page. Fixed constants like PAGE_WIDTH,
+    the rendered PDF fits on two pages. Fixed constants like PAGE_WIDTH,
     FONT_FAMILY, and FONT_SIZE_H1 are not adjustable.
     """
 

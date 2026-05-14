@@ -167,12 +167,12 @@ Write the tailored resume to: {PROJECT_ROOT}/markdown/<folder_name>/generated.md
 
 ## Instructions
 1. Read `docs/writing_style_guide.md` and enforce all writing rules
-2. Select the 3-4 most relevant roles and 2-3 strongest bullets per role from the golden dataset
+2. Include ALL roles from the golden dataset's PROFESSIONAL EXPERIENCE section. Every role must appear in the tailored resume. Select the strongest bullets per role and reframe them for JD relevance. Reduce bullet count per role if needed to meet the two-page target, but never omit a role entirely. If space is tight, trim or remove optional sections (PROJECTS, CERTIFICATIONS, AWARDS, & LEADERSHIP) before reducing bullets from any professional experience role
 3. Reframe selected bullets using the XYZ formula (mandatory)
 4. Reorder bullet points to front-load the most JD-relevant experience
 5. Weave JD-specific terminology into the Z (methods) component of each XYZ bullet
 6. Preserve all factual content. Do NOT fabricate experience, metrics, or credentials
-7. Maintain single-page fit: 4500-5000 characters
+7. Target a two-page resume. Use the full depth of the golden dataset to fill both pages with JD-relevant content
 8. Write the tailored content to {PROJECT_ROOT}/markdown/<folder_name>/generated.md using the Write tool
 9. NEVER modify docs/resume.md. You are writing a NEW file only
 10. Preserve all markdown hyperlink syntax `[text](url)` from the golden dataset contact line exactly as-is. Do not strip links to plain text

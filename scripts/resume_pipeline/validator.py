@@ -13,8 +13,6 @@ from .config import (
     ATS_OPTIONAL_SECTIONS,
     ATS_REQUIRED_SECTIONS,
     BANNED_WORDS,
-    CHAR_BUDGET_MAX,
-    CHAR_BUDGET_MIN,
     Issue,
     SECTION_ORDER,
 )
@@ -89,34 +87,20 @@ def _check_punctuation(body: str) -> list[Issue]:
     return issues
 
 
-def _check_char_budget(body: str) -> tuple[list[Issue], int]:
-    """Check visible character count against target budget.
-
-    Strips markdown syntax to count only visible characters.
+def _count_visible_chars(body: str) -> int:
+    """Count visible characters after stripping markdown syntax.
 
     Args:
         body: Resume body text.
 
     Returns:
-        Tuple of (issues, char_count) where char_count is the visible
-        character count after stripping markdown syntax.
+        Visible character count.
     """
-    issues: list[Issue] = []
     plain = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", body)
     plain = re.sub(r"[*#\-|]", "", plain)
     plain = re.sub(r"<br>", "", plain)
     visible = re.sub(r"\s+", " ", plain).strip()
-    char_count = len(visible)
-
-    budget_range = f"{CHAR_BUDGET_MIN}-{CHAR_BUDGET_MAX}"
-    if char_count < CHAR_BUDGET_MIN:
-        issues.append(("WARN", f"Under budget: {char_count} chars (target {budget_range})"))
-    elif char_count > CHAR_BUDGET_MAX:
-        issues.append(("WARN", f"Over budget: {char_count} chars (target {budget_range})"))
-    else:
-        issues.append(("PASS", f"Character count: {char_count} (target {budget_range})"))
-
-    return issues, char_count
+    return len(visible)
 
 
 def _check_ats_sections(body: str) -> list[Issue]:
@@ -207,10 +191,9 @@ def validate(text: str) -> tuple[list[Issue], int]:
         1. Banned words from writing style guide
         2. Passive voice constructions
         3. Prohibited punctuation (em dashes, double hyphens, semicolons)
-        4. Character budget (visible text within target range)
-        5. ATS section headers (required + optional allowlist)
-        6. Section order (canonical sequence)
-        7. XYZ bullet quality and link validity
+        4. ATS section headers (required + optional allowlist)
+        5. Section order (canonical sequence)
+        6. XYZ bullet quality and link validity
 
     Args:
         text: Raw markdown content (may include YAML frontmatter).
@@ -227,8 +210,7 @@ def validate(text: str) -> tuple[list[Issue], int]:
     issues.extend(_check_passive_voice(body_lower))
     issues.extend(_check_punctuation(body))
 
-    budget_issues, char_count = _check_char_budget(body)
-    issues.extend(budget_issues)
+    char_count = _count_visible_chars(body)
 
     issues.extend(_check_ats_sections(body))
     issues.extend(_check_section_order(body))

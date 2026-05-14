@@ -29,7 +29,7 @@ You generate job-tailored resume markdown files. You NEVER modify `docs/resume.m
 
 ```
 Source:  docs/resume.md (READ-ONLY golden dataset, provided in prompt)
-Output: {PROJECT_ROOT}/markdown/<folder_name>/generated.md (tailored, 4500-5000 chars)
+Output: {PROJECT_ROOT}/markdown/<folder_name>/generated.md (tailored, two-page target)
 Build:  python3 scripts/resume_pdf.py --input markdown/<folder_name>/final.md --output Thomas_To_Resume_<Name>
 ```
 
@@ -37,7 +37,7 @@ Build:  python3 scripts/resume_pdf.py --input markdown/<folder_name>/final.md --
 
 ## Focus
 
-- Select ~40% of golden dataset content (3-4 most relevant roles, 2-3 bullets per role)
+- Include ALL roles from the golden dataset's PROFESSIONAL EXPERIENCE section. Every role must appear. Reduce bullet count per role to fit the two-page target, but never omit a role entirely. If space is tight, trim optional sections (PROJECTS, CERTIFICATIONS, AWARDS, & LEADERSHIP) before reducing professional experience bullets
 - Reframe bullets using XYZ formula to match JD keywords
 - Content validation (banned words, active voice, formatting)
 - Write tailored markdown to the specified output file
@@ -51,8 +51,7 @@ Build:  python3 scripts/resume_pdf.py --input markdown/<folder_name>/final.md --
 - **Font**: Times, 10.5pt base, line-height 1.25x
 - **H1**: 20pt centered (name only)
 - **H2**: 11pt uppercase with bottom rule (section headers)
-- **Target**: Single page
-- **Character estimate**: 3500-4000 chars for single-page fit
+- **Target**: Two pages
 
 ---
 

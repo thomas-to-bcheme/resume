@@ -19,14 +19,14 @@ You are the **Lead Orchestrator**. Your goal is to coordinate changes across the
 
 ## 3. Project Overview
 
-Standalone resume tailoring microservice powered by Claude Code. Reads a golden dataset (`docs/resume.md`), tailors content to job descriptions using AI agents, and generates ATS-optimized single-page PDFs.
+Standalone resume tailoring microservice powered by Claude Code. Reads a golden dataset (`docs/resume.md`), tailors content to job descriptions using AI agents, and generates ATS-optimized PDFs.
 
 ### Workflow: Resume
 1. User invokes `/resume-tailor <application_name>` with a job description (URL or pasted text)
 2. Claude Code reads the golden dataset and writing style rules from `docs/`
 3. Resume agent tailors content to the JD using XYZ bullet formula
-4. Validation script checks ATS compliance, banned words, character budget
-5. PDF generator produces a single-page resume
+4. Validation script checks ATS compliance and banned words
+5. PDF generator produces a two-page resume
 
 ### Workflow: Cover Letter
 1. User invokes `/coverletter-tailor <application_name>` with a job description (URL or pasted text)

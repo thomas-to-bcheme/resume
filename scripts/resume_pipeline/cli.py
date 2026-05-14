@@ -127,5 +127,5 @@ def main() -> None:
         logger.info("  Layout optimizations applied (%d steps):", len(adjustments))
         for adj in adjustments:
             logger.info("    - %s", adj)
-    if page_count > 1:
-        logger.warning("  %d pages after all optimizations (target: 1).", page_count)
+    if page_count > 2:
+        logger.warning("  %d pages after all optimizations (target: 2).", page_count)

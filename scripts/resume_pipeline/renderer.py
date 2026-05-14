@@ -1,8 +1,8 @@
-"""PDF rendering and single-page optimization.
+"""PDF rendering and page-fit optimization.
 
-Converts parsed resume elements into an ATS-optimized single-page PDF
-using fpdf2. Includes a page-fit optimizer that progressively tightens
-layout parameters until content fits on one page.
+Converts parsed resume elements into an ATS-optimized PDF using fpdf2.
+Includes a page-fit optimizer that progressively tightens layout
+parameters until content fits on two pages.
 """
 
 from __future__ import annotations
@@ -210,8 +210,8 @@ def render_bullet(pdf: FPDF, text: str, cfg: LayoutConfig) -> None:
 def _try_render(elements: list[Element], cfg: LayoutConfig) -> tuple[FPDF, int]:
     """Render elements into an in-memory PDF without writing to disk.
 
-    Used by generate_pdf() to test whether content fits on one page before
-    committing to a file.
+    Used by generate_pdf() to test whether content fits within the target
+    page count before committing to a file.
 
     Args:
         elements: Parsed (type, content) pairs from parse_resume().
@@ -287,9 +287,9 @@ def _apply_optimization_step(cfg: LayoutConfig, step: int) -> LayoutConfig:
 def generate_pdf(
     elements: list[Element], output_path: Path
 ) -> tuple[bool, int, list[str]]:
-    """Generate a single-page ATS-optimized PDF from parsed resume elements.
+    """Generate an ATS-optimized PDF from parsed resume elements.
 
-    Attempts to render with default layout. If the result exceeds one page,
+    Attempts to render with default layout. If the result exceeds two pages,
     progressively tightens layout parameters (font size, line spacing,
     margins) until the content fits or all optimization steps are exhausted.
 
@@ -309,7 +309,7 @@ def generate_pdf(
     pdf, page_count = _try_render(elements, cfg)
 
     step = 0
-    while page_count > 1 and step < len(_OPTIMIZATION_STEPS):
+    while page_count > 2 and step < len(_OPTIMIZATION_STEPS):
         cfg = _apply_optimization_step(cfg, step)
         adjustments.append(_OPTIMIZATION_STEPS[step][0])
         pdf, page_count = _try_render(elements, cfg)
